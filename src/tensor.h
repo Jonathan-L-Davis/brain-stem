@@ -14,6 +14,7 @@ concept addition = requires(T a, T b){
 template<typename T>
 concept multiplication = requires(T a, T b){
     a * b;
+    a *= b;
 };
 
 template<typename T>
@@ -31,10 +32,15 @@ struct tensor{
     
     std::vector<T> data;//The actual data, which can be reinterpreted as a variable dimension array.
     
-    T& operator [] (const std::vector<uint64_t> &index) {
+    T& operator [] (const std::vector<uint64_t> index) {
         
         //assert( index.size() == indices.size() );
         assert( index.size() == dims.size() );
+        
+        if(dims.size()==0){
+            assert(data.size()==1);
+            return data[0];
+        }
         
         for( unsigned int i = 0; i < index.size(); i++)
             assert( index[i] < dims[i] );//bounds checking
@@ -50,7 +56,7 @@ struct tensor{
         return data[raw_index];//should check for null ptr
     };
     
-    friend tensor<T> operator + ( const tensor<T> &a, const tensor<T> &b ){
+    friend tensor<T> operator + ( const tensor<T> a, const tensor<T> b ){
         tensor<T> c;
         
         assert( a.data.size() == b.data.size() );
@@ -64,7 +70,8 @@ struct tensor{
         return c;
     };
     
-    friend tensor<T> operator * ( const T &a, const tensor<T> &b ){
+    //duplicated to support non-abelian rings.
+    friend tensor<T> operator * ( const T a, const tensor<T> b ){
         tensor<T> c;
         
         c.data.resize( b.data.size() );
@@ -75,7 +82,7 @@ struct tensor{
         return c;
     };
     
-    friend tensor<T> operator * ( const tensor<T> &a, const T& b ){
+    friend tensor<T> operator * ( const tensor<T> a, const T b ){
         tensor<T> c;
         
         c.data.resize( a.data.size() );
@@ -91,19 +98,19 @@ struct tensor{
         data = b.data;
     }
     
-    tensor<T> dot (tensor<T> &b) {
+    tensor<T> dot (tensor<T> b) {
         tensor<T> retMe;
         
         if( b.dims.size() == 0 ){
             assert( b.data.size() == 1 );
-            return b.data[0]*(*this);
+            return b.data[0]*(*this);// uses overloaded ring-tensor multiplication.
         }
-        
         //sanity checks & assertions
-        assert( dims.size() >= b.data.size() );
+        assert( dims.size() >= b.dims.size() );
         
-        for( int i = dims.size()-1; i >= (signed)b.dims.size(); i-- )
+        for( int i = dims.size()-1; i >= (signed)b.dims.size(); i-- ){
             assert( dims[i] == b.dims[ i-(dims.size()-b.dims.size()) ] );
+        }
         
         assert( data.size() >= b.data.size() );
         
@@ -133,11 +140,21 @@ struct tensor{
         
         //calculate the dot product.
         
-        for( unsigned int i = 0; i < dims.size(); i++ )
+        for( unsigned int i = 0; i < retMe.dims.size(); i++ )
             retMe.dims[i] = dims[i];
         
         //*
         std::vector<uint64_t> index(retMe.dims.size(),0);
+        
+        if( retMe.dims.size() == 0 ){
+            
+            assert( retMe.data.size() == 1 );
+            assert(b.data.size()==data.size());
+            
+            for( unsigned int i = 0; i < data.size(); i++ )
+                retMe[{}] += data[i]*b.data[i];
+            return retMe;
+        }
         
         do{//hate that I'm using a do while for this, but it doesn't really work in a for loop or a while loop...
             T value{};// T ought to initialize to it's equivalent 0 value. 
@@ -146,8 +163,13 @@ struct tensor{
             do{
                 std::vector<uint64_t> idx = index;
                 idx.insert(idx.end(),inner_index.begin(),inner_index.end());
+                std::cout << idx.size() << std::endl;
+                std::cout << (*this).dims.size() << std::endl;
+                std::cout << dims.size() << std::endl;
                 
-                value += (*this)[idx]*b[inner_index];
+                auto f1 = (*this)[idx];
+                auto f2 = b[inner_index];
+                value += f1*f2;
                 //std::cout << (int) value.data << std::endl;
             }while( !b.next_index(inner_index) );
             
@@ -158,7 +180,7 @@ struct tensor{
         return retMe;
     }
     
-    bool next_index (std::vector<uint64_t> &index){
+    bool next_index (std::vector<uint64_t> index){
         bool rolled_over_to_0 = false;
         
         // these two check that the index is valid
@@ -178,6 +200,24 @@ struct tensor{
         }end_increment:;
         
         return rolled_over_to_0;
+    }
+    
+    uint64_t size(){
+        return (uint64_t) data.size();
+    }
+    
+    tensor<T> reshape(std::vector<uint64_t> new_dims){
+        tensor<T> retMe;
+        
+        uint64_t new_tensor_size = 1;
+        for( unsigned int i = 0; i < new_dims.size(); i++ ) new_tensor_size *= new_dims[i];
+        
+        assert(new_tensor_size==this->size());
+        
+        retMe.data = data;
+        retMe.dims = new_dims;
+        
+        return retMe;
     }
     
 };
