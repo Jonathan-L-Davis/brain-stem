@@ -20,6 +20,7 @@ concept multiplication = requires(T a, T b){
 template<typename T>
 concept assignment = requires(T a, T b){
     a = b;
+    T{};
 };
 
 template<typename T>
@@ -135,7 +136,7 @@ struct tensor{
             uint64_t final_size = 1;
             for( unsigned int i = 0; i < dims.size()-b.dims.size(); i++ )
                 final_size *= dims[i];
-            retMe.data.resize(final_size);
+            retMe.data.resize(final_size,T{});
         }
         
         //calculate the dot product.
@@ -180,7 +181,7 @@ struct tensor{
         return retMe;
     }
     
-    bool next_index (std::vector<uint64_t> index){
+    bool next_index (std::vector<uint64_t> &index){
         bool rolled_over_to_0 = false;
         
         // these two check that the index is valid
@@ -216,6 +217,59 @@ struct tensor{
         
         retMe.data = data;
         retMe.dims = new_dims;
+        
+        return retMe;
+    }
+    
+    tensor<T> swap_indices(uint64_t a, uint64_t b){
+        tensor<T> retMe;
+        
+        // cannot perform a swap on a dimension 0 vector.
+        assert(dims.size() != 0); // redundant, but nice for clarity. Can't allow because size 0 tensors have no indices to swap at all. Sure we could return the *this like we do for when they are equal, but in this case we can't pass valid parameters in.
+        assert( a < dims.size() );
+        assert( b < dims.size() );
+        
+        // no swapping happening
+        if( a == b ){
+            std::cout << "here" << std::endl;
+            retMe.dims = dims;
+            retMe.data = data;
+            std::cout << "here" << std::endl;
+            return retMe;
+        }
+        
+        assert( data.size() > 0 );
+        assert( size_check() );
+        
+        retMe.dims = dims;
+        retMe.data.resize(data.size(),T{});
+        std::swap( retMe.dims[a], retMe.dims[b] );
+        
+        std::vector<uint64_t> index(retMe.dims.size(),0);
+        
+        do{//hate that I'm using a do while for this, but it doesn't really work in a for loop or a while loop...
+            
+            std::vector<uint64_t> new_index = index;
+            
+            std::swap(new_index[a],new_index[b]);
+            
+            retMe[new_index] = (*this)[index];
+            
+        }while( !retMe.next_index(index) );//*/
+        
+        return retMe;
+    }
+    
+    bool size_check(){
+        bool retMe = true;
+        
+        uint64_t expected_size = 1;
+        for( uint64_t i = 0; i < dims.size(); i++ ) expected_size *= dims[i];
+        retMe &= ( data.size() == expected_size );
+        
+        //the following are just sanity checks for when we go outside of our initial bounds. Can be removed or increased.
+        for( uint64_t i = 0; i < dims.size(); i++ ) retMe &= ( dims[i] <= 1024 );
+        retMe &= ( data.size() <= 4096 );
         
         return retMe;
     }
