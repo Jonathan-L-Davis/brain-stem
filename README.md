@@ -2,8 +2,7 @@
 
 This needs a really long description, with links to the relevant papers (2 or 3 short ones).<br>
 <br>
-Will eventually add a bash build script.<br>
-Will eventually add a LeNet implementation for comparison.<br>
+Will eventually add a LeNet implementation in normal float and in z3 for comparison.<br>
 Will eventually add tensor reshaping and index swapping.<br>
 Will eventually add faster Z3 operations.<br>
 <br>

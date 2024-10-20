@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <type_traits>
 #include <vector>
+#include <cstdint> // doesn't necessarily put the uint64_t into the global namespace (only guarantees they are in std::), but both clang++ and g++ do so. I feel like they should be global anyhow, (they really ought to be built in types, but C++'s history and all. )
 
 template<typename T>
 concept addition = requires(T a, T b){
