@@ -25,4 +25,4 @@ for object in "${Object_Files[@]}" ; do
     file_glob+=" $object"
 done
 
-clang++ $file_glob -o "fury"
+clang++ $file_glob -o "brain-stem"
