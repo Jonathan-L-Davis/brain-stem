@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdint> // doesn't necessarily put the uint64_t into the global namespace (only guarantees they are in std::), but both clang++ and g++ do so. I feel like they should be global anyhow, (they really ought to be built in types, but C++'s history and all. )
 
+/* Have to forego the nice compile time checks so we can be compatible with c++17... ughhh...
 template<typename T>
 concept addition = requires(T a, T b){
     a + b;
@@ -23,9 +24,10 @@ concept assignment = requires(T a, T b){
     a = b;
     T{};
 };
+//*/
 
 template<typename T>
-requires addition<T> && multiplication<T> && assignment<T>
+//requires addition<T> && multiplication<T> && assignment<T>
 struct tensor{
     //indices is for when you swap the order of indices to keep track of that without moving tons of memory around. Most simple example is transposing a matrix.
     
