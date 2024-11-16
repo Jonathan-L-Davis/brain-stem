@@ -1,8 +1,9 @@
 #include <iostream>
 
 #include "tensor.h"
-
 #include "z3.h"
+#include "layer.h"
+#include "model.h"
 
 int main(){
     

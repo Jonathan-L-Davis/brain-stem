@@ -31,7 +31,7 @@ template<typename T>
 struct tensor{
     //indices is for when you swap the order of indices to keep track of that without moving tons of memory around. Most simple example is transposing a matrix.
     
-    //do not need right now. I can rethink this part when I do more sophisticated reshaping. This is for a memcpy optimization. Not important.;std::vector<uint64_t> indices;// honestly, you could really get away with 8 bits for this. Who the hell is gonna use more than 256 dimensions for a tensor? That's either a ton of length one indices (which is retarded, and a waste of space), or at least 2^256 * sizeof(T) bytes of memory. No one has that much ram or storage. The world doesn't have that much ram or storage.
+    //do not need right now. I can rethink this part when I do more sophisticated reshaping. This is for a memcpy optimization. Not important.;std::vector<uint64_t> indices;// honestly, you could really get away with 8 bits for this. Who is gonna use more than 256 dimensions for a tensor?
     std::vector<uint64_t> dims;// Really unlikely you're gonna use more than 4 gigs for a single tensor, but not unreasonable or impossible. Tempted to add asserts for that. John Carmack and Lex Fridman talked about intentionally making software break as you pass the limits of your expected values, because you likely need to rethink your base assumptions. https://www.youtube.com/watch?v=I845O57ZSy4 not rewatching to find the time stamp, it's 5 hours long. Good watch though, the whole thing is worth while.
     
     std::vector<T> data;//The actual data, which can be reinterpreted as a variable dimension array.
