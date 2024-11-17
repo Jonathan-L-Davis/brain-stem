@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-Source_Files=( "main.cpp" "layer.cpp" "model.cpp" )
+Source_Files=( "main.cpp" )
 Object_Files=()
 Compiler=""
 
